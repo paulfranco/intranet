@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic import (
 			DeleteView,
 			DetailView, 
@@ -18,27 +19,8 @@ from .models import Post
 class PostCreateView(FormUserNeededMixin, CreateView):
 	form_class = PostModelForm
 	template_name = 'posts/create_view.html'
-	success_url = '/post/create/'
-	#login_url = '/admin/'
-
-	# def form_valid(self, form):
-	# 	if self.request.user.is_authenticated():
-	# 		form.instance.user = self.request.user
-	# 		return super(PostCreateView, self).form_valid(form)
-	# 	else:
-	# 		form.errors[forms.forms.NON_FIELD_ERRORS] = ErrorList(["User must be logged in to continue"])
-	# 		return self.form_invalid(form)
-
-
-# def post_create_view(request): # function based view
-# 	form = PostModelForm(request.POST or None)
-# 		instance = form.save(commit=False)
-# 		instance.user = request.user
-# 		instance.save()
-# 	context = {
-# 		"form": form
-# 	}
-# 	return render(request, 'posts/create_view.html', context)
+	#success_url = '/post/create/'
+	
 
 # Update
 
@@ -46,62 +28,40 @@ class PostUpdateView(LoginRequiredMixin, UserOwnerMixin, UpdateView):
 	queryset = Post.objects.all()
 	form_class = PostModelForm
 	template_name = 'posts/update_view.html'
-	success_url = '/post/'
-
-
+	# success_url = '/post/'
 
 # Delete
 
 class PostDeleteView(LoginRequiredMixin, DeleteView):
 	model = Post
 	template_name = 'posts/delete_confirm.html'
-	success_url = reverse_lazy("home")
-
-
-
-
+	success_url = reverse_lazy("post:list") # /post/
 
 
 # Retreive
 
 class PostDetailView(DetailView):
 	queryset = Post.objects.all()
-	#template_name = "posts/detail_view.html"
 	
 
-	# def get_object(self):
-	# 	print(self.kwargs)
-	# 	pk = self.kwargs.get("pk")
-	#	get_object_or_404(Post, pk=pk)
-	# 	return obj
-
 class PostListView(ListView):
-	#template_name = "posts/list_view.html"
-	queryset = Post.objects.all()
+	
+	def get_queryset(self, *args, **kwargs):
+		qs = Post.objects.all()
+		print(self.request.GET)
+		query = self.request.GET.get("q", None)
+		if query is not None:
+			qs = qs.filter(
+					Q(content__icontains=query) |
+					Q(user__username__icontains=query)
+
+					)
+		return qs
 
 	def get_context_data(self, *args, **kwargs):
 		context = super(PostListView, self).get_context_data(*args, **kwargs)
-		print(context)
+		context['create_form'] = PostModelForm()
+		context['create_url'] = reverse_lazy("post:create")
 		return context
 
 
-
-# def post_detail_view(request, pk=None): # pk == id # function based view
-# 	obj = Post.objects.get(pk=pk) # Get from database
-#	obj = get_object_or_404(Post, pk=pk)
-# 	print(obj)
-# 	context = {
-# 		"object": obj
-# 	}
-# 	return render(request, "posts/detail_view.html", context)
-
-
-# def post_list_view(request):
-# 	queryset = Post.objects.all()
-# 	print(queryset)
-# 	for obj in queryset:
-# 		print(obj.content)
-# 	context = {
-# 		'object_list': queryset
-# 	}
-# 	return render(request, "posts/list_view.html", context)
