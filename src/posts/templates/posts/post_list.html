@@ -1,4 +1,44 @@
 {% extends "base.html" %}
+<style>
+
+#post-container {
+
+}
+</style>
+
+{% block script %}
+<script>
+$(document).ready(function(){
+	console.log("Ajax is working");
+
+
+	$.ajax({
+		url: "/api/post",
+		method: "GET",
+		success: function(data){
+			console.log(data)
+			$.each(data, function(key, value){
+				var postKey = key;
+				var postContent = value.content;
+				var postUser = value.user;
+				$("#post-container").append(
+					"<div class='media'><div class='media-body'>" + postContent + "<br/> via " + postUser.username + " | " + "<a href='#''>View</a>" + "</div></div><hr/>"
+				)
+			})
+		},
+		error: function(data){
+			console.log('error');
+			console.log(data);
+		}
+
+
+
+	});
+
+});	
+
+</script>
+{% endblock script %}
 
 {% block content %}
 
@@ -13,6 +53,13 @@
 			</div>
 			<hr>
 			{% endif %}
+			<div id='post-container'>
+
+			</div>
+
+
+
+
 			{% for object in  object_list %}
 		<div class="media">
 			<div class="media-left">

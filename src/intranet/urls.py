@@ -10,7 +10,8 @@ from .views import home
 urlpatterns = [
     url(r'^$', PostListView.as_view(), name='home'),
     url(r'^admin/', admin.site.urls),
-    url(r'^post/', include('posts.urls', namespace='post'))
+    url(r'^post/', include('posts.urls', namespace='post')),
+    url(r'^api/post', include('posts.api.urls', namespace='post-api'))
 ]
 
 
