@@ -2,38 +2,101 @@
 <style>
 
 #post-container {
-
+	background-color: red;
 }
 </style>
 
 {% block script %}
 <script>
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
 $(document).ready(function(){
-	console.log("Ajax is working");
+	//console.log("Ajax is working");
+	var query = getParameterByName('q')
+	var postList = [];
 
+	function attachPost(postValue, prepend){
+		//var postKey = key;
+		var dateDisplay = postValue.date_display;
+		var postContent = postValue.content;
+		var postUser = postValue.user;
+		var postFormattedHtml = "<div class='media'><div class='media-body'>" + postContent + "<br/> via " + postUser.username + " | "+ dateDisplay + " | " + "<a href='#''>View</a>" + "</div></div><hr/>"
+		if (prepend==true){
+			$("#post-container").prepend(postFormattedHtml)
+		} else {
+			$("#post-container").append(postFormattedHtml)
+		}
+	}
 
-	$.ajax({
-		url: "/api/post",
+	function parsePosts(){
+		if (postList == 0){
+			$("#post-container").text("No Posts currently found")
+		} else {
+		// Posts Exists, parse and display them
+		$.each(postList, function(key, value){
+			var postKey = key;
+			attachPost(value)
+			})
+		}
+	}
+	function fetchPosts(){
+		console.log("fetching ...")
+		$.ajax({
+		url: "/api/post/",
+		data: {
+			"q": query
+		},
 		method: "GET",
 		success: function(data){
-			console.log(data)
-			$.each(data, function(key, value){
-				var postKey = key;
-				var postContent = value.content;
-				var postUser = value.user;
-				$("#post-container").append(
-					"<div class='media'><div class='media-body'>" + postContent + "<br/> via " + postUser.username + " | " + "<a href='#''>View</a>" + "</div></div><hr/>"
-				)
-			})
+			//console.log(data)
+			postList = data
+			parsePosts()
+
 		},
 		error: function(data){
-			console.log('error');
-			console.log(data);
+			console.log('error')
+			console.log(data)
 		}
+	})
+	}
+
+	fetchPosts()
 
 
+	$("#post-form").submit(function(event){
+		event.preventDefault()
+		var this_ = $(this)
+		var formData = this_.serialize()
+		$.ajax({
+			url: "/api/post/create/",
+			data: formData,
+			method: "POST",
+			success: function(data){
+				this_.find("input[type=text], textarea").val("")
+				attachPost(value, true)
+				//console.log(data)
+				//fetchPosts()
+				//postList = data
+				//parsePosts()
 
-	});
+			},
+			error: function(data){
+				console.log('error')
+				console.log(data.statusText)
+				console.log(data.status)
+			}
+		})
+
+	})
 
 });	
 
@@ -43,46 +106,19 @@ $(document).ready(function(){
 {% block content %}
 
 	<div class="row">
-		<div class="col-sm-3 col-xs-12" style='background-color:red;'>
+		<div class="col-sm-3 col-xs-12" style='background-color:white;'>
 			<h1>{{ request.user }}</h1> 
 		</div>
 		<div class='col-sm-9'>
 			{% if not request.GET.q %}
 			<div class="">
-				{% include 'posts/form.html' with form=create_form action_url=create_url btn_title='Post' %}
+				{% include 'posts/form.html' with form=create_form action_url=create_url btn_title='Post' form_id='post-form' %}
 			</div>
-			<hr>
+			<hr/>
 			{% endif %}
 			<div id='post-container'>
 
 			</div>
-
-
-
-
-			{% for object in  object_list %}
-		<div class="media">
-			<div class="media-left">
-				<a href="#">
-					{% if object.image %}
-						<img class="media-object" src="..." alt="...">
-					{% endif %}
-				</a>
-			</div>
-			<div class="media-body">
-				{{ object.content }}<br/>
-				via {{ object.user }} | {{ object.timestamp | timesince }} ago | <a href='{{ object.get_absolute_url }}'> View </a>
-			</div>
-		</div>
-		<hr>
-		{%  empty %}
-			{% if request.GET.q %}
-				<p>No posts found</p>
-			{% else %}
-				<p>No posts yet</p>
-			{% endif %}
-		{% endfor %}
-
 		</div>
 	</div>
 {% endblock content %}
