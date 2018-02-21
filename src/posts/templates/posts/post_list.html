@@ -71,31 +71,57 @@ $(document).ready(function(){
 
 	fetchPosts()
 
+	var charsStart = 240;
+	var charsCurrent = 0; 
+
+	$("#post-form").append("<span id='postCharsLeft'>" + charsStart + "</span>")
+
+	$("#post-form textarea").keyup(function(event){
+		var postValue = $(this).val()
+		charsCurrent = charsStart - postValue.length
+		var spanChars = $("#postCharsLeft")
+		spanChars.text(charsCurrent)
+
+		$("#postCharsLeft").text(charsCurrent)
+
+		if (charsCurrent > 0){
+			// Remove classes
+			spanChars.removeClass("grey-color ")
+			spanChars.removeClass("red-color")	
+		} else if (charsCurrent == 0){
+			// add gray class
+			spanChars.removeClass("red-color")	
+			spanChars.addClass("grey-color")
+		} else if (charsCurrent < 0){
+			// add red class
+			spanChars.removeClass("grey-color ")
+			spanChars.addClass("red-color")
+		}
+	})
+
 
 	$("#post-form").submit(function(event){
 		event.preventDefault()
 		var this_ = $(this)
 		var formData = this_.serialize()
-		$.ajax({
-			url: "/api/post/create/",
-			data: formData,
-			method: "POST",
-			success: function(data){
-				this_.find("input[type=text], textarea").val("")
-				attachPost(value, true)
-				//console.log(data)
-				//fetchPosts()
-				//postList = data
-				//parsePosts()
-
-			},
-			error: function(data){
-				console.log('error')
-				console.log(data.statusText)
-				console.log(data.status)
-			}
-		})
-
+		if (charsCurrent >= 0){
+			$.ajax({
+				url: "/api/post/create/",
+				data: formData,
+				method: "POST",
+				success: function(data){
+					this_.find("input[type=text], textarea").val("")
+					attachPost(value, true)
+				},
+				error: function(data){
+					console.log('error')
+					console.log(data.statusText)
+					console.log(data.status)
+				}
+			})
+		} else {
+			console.log("Cannot Send, The Post is too long")
+		}
 	})
 
 });	

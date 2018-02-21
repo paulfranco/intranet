@@ -12,6 +12,14 @@
     <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"> -->
 
     <title>Intranet {% block title %} {% endblock title%}</title>
+    <style>
+      .red-color {
+        color: red;
+      }
+      .grey-color {
+        color: #ccc;
+      }
+    </style>
   </head>
   <body>
   	<div class='container'>
@@ -26,6 +34,34 @@
 
     {% block script %}{% endblock script %}
     
+    <script>
+      $(document).ready(function(){
+        var typingTimer;
+        var doneInterval = 600;
+        var searchInput = $("#navbar-search-form input[type=text]");
+        var searchQuery;
+
+        searchInput.keyup(function(event){
+          searchQuery = $(this).val()
+          clearTimeout(typingTimer)
+          typingTimer = setTimeout(doneSearchTyping, doneInterval)          
+        })
+
+        searchInput.keydown(function(event){
+          // console.log(event.key);
+          clearTimeout(typingTimer);
+
+        })
+        function doneSearchTyping(){
+          if (searchQuery){
+            // do search
+            var url = '/post/search/?q=' + searchQuery;
+            document.location.href = url;
+          }
+        }        
+
+      });
+    </script>
     <script src=" {% static 'js/bootstrap.min.js' %}"></script>
     <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script> -->
   </body>
