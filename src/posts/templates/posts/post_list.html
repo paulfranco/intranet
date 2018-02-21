@@ -23,6 +23,7 @@ $(document).ready(function(){
 	//console.log("Ajax is working");
 	var query = getParameterByName('q')
 	var postList = [];
+	var nextPostUrl;
 
 	function attachPost(postValue, prepend){
 		//var postKey = key;
@@ -48,17 +49,29 @@ $(document).ready(function(){
 			})
 		}
 	}
-	function fetchPosts(){
+	function fetchPosts(url){
 		console.log("fetching ...")
+		var fetchUrl;
+		if (!url){
+			fetchUrl = "api/post/"
+		} else {
+			fetchUrl = url
+		}
 		$.ajax({
-		url: "/api/post/",
+		url: fetchUrl,
 		data: {
 			"q": query
 		},
 		method: "GET",
 		success: function(data){
 			//console.log(data)
-			postList = data
+			postList = data.results
+			if (data.next){
+				nextPostUrl = data.next
+			} else {
+				$("#loadmore").css("display", "none")
+			}
+			
 			parsePosts()
 
 		},
@@ -70,6 +83,14 @@ $(document).ready(function(){
 	}
 
 	fetchPosts()
+
+	$("#loadmore").click(function(event){
+		event.preventDefault()
+		// Load More Items
+		if (nextPostUrl){
+			fetchPosts(nextPostUrl)
+		}
+	})
 
 	var charsStart = 240;
 	var charsCurrent = 0; 
@@ -145,7 +166,9 @@ $(document).ready(function(){
 			<div id='post-container'>
 
 			</div>
+			<a href="#" id="loadmore">Load More Posts</a>
 		</div>
+		
 	</div>
 {% endblock content %}
 

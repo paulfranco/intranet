@@ -3,6 +3,8 @@ from rest_framework import generics
 from rest_framework import permissions
 
 from posts.models import Post 
+
+from .pagination import StandardResultsPagination
 from .serializers import PostModelSerializer
 
 class PostCreateAPIView(generics.CreateAPIView):
@@ -14,6 +16,7 @@ class PostCreateAPIView(generics.CreateAPIView):
 
 class PostListAPIView(generics.ListAPIView):
 	serializer_class = PostModelSerializer
+	pagination_class = StandardResultsPagination
 
 
 	def get_queryset(self, *args, **kwargs):
