@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class='row'>
+	<div class='col-sm-3 col-xs-12' style='background-color:white;'>
+		<h1>{{ object.username }}</h1>
+	</div>
+	<div class='col-sm-9 col-xs-12'>
+		<h1>Posts</h1>
+		{% for post in object.post_set.all %}
+		{{ post }}<br/><hr/>
+
+		{% endfor %}
+	</div>
+
+</div>
+
+{% endblock content %}
