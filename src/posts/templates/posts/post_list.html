@@ -30,7 +30,7 @@ $(document).ready(function(){
 		var dateDisplay = postValue.date_display;
 		var postContent = postValue.content;
 		var postUser = postValue.user;
-		var postFormattedHtml = "<div class='media'><div class='media-body'>" + postContent + "<br/> via " + postUser.username + " | "+ dateDisplay + " | " + "<a href='#''>View</a>" + "</div></div><hr/>"
+		var postFormattedHtml = "<div class='media'><div class='media-body'>" + postContent + "<br/> via <a href='" + postUser.url+ "'>" + postUser.username + "</a> | "+ dateDisplay + " | " + "<a href='#''>View</a>" + "</div></div><hr/>"
 		if (prepend==true){
 			$("#post-container").prepend(postFormattedHtml)
 		} else {
