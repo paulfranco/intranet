@@ -25,12 +25,51 @@ $(document).ready(function(){
 	var postList = [];
 	var nextPostUrl;
 
-	function attachPost(postValue, prepend){
+
+	$(document.body).on("click", ".repostBtn", function(e){
+		e.preventDefault()
+		console.log("clicked")
+		var url = "/api" + $(this).attr("href")
+
+		$.ajax({
+			method: "GET",
+			url: url,
+			success: function(data){
+				console.log(data)
+				attachPost(data, true, true)
+				updateHashLinks()
+			},
+			error: function(data){
+				console.log("error")
+				console.log(data)
+			}
+		})
+	})
+
+	function updateHashLinks(){
+		$(".media-body").each(function(data){
+			var hashTagRegex = /(^|\s)#([\w\d-]+)/g
+			var newText = $(this).html().replace(hashTagRegex, "$1<a href='/tags/$2/'>#$2</a>")
+			$(this).html(newText)
+		})
+
+	}
+
+	function attachPost(postValue, prepend, repost){
 		//var postKey = key;
 		var dateDisplay = postValue.date_display;
 		var postContent = postValue.content;
 		var postUser = postValue.user;
-		var postFormattedHtml = "<div class='media'><div class='media-body'>" + postContent + "<br/> via <a href='" + postUser.url+ "'>" + postUser.username + "</a> | "+ dateDisplay + " | " + "<a href='#''>View</a>" + "</div></div><hr/>"
+		var postFormattedHtml;
+		if (repost && postValue.parent){
+			// Repost
+			var mainPost = postValue.parent 
+			postFormattedHtml = "<div class='media'><div class='media-body'><span class='grey-color'> Repost via " + postUser.username + " on " + dateDisplay + "</span><br/>" + mainPost.content + "<br/> via <a href='" + mainPost.user.url + "'>" + mainPost.user.username + "</a> | "+ mainPost.date_display + " | " + "<a href='/post/" + mainPost.id + "'>View</a> | " + "<a class='repostBtn' href='/post/" + postValue.id + "/repost/'>Repost</a>" + "</div></div><hr/>"
+
+		} else {
+			// Fresh Post
+			postFormattedHtml = "<div class='media'><div class='media-body'>" + postContent + "<br/> via <a href='" + postUser.url+ "'>" + postUser.username + "</a> | " + dateDisplay + " | " + "<a href='/post/" + postValue.id + "'>View</a> | " + "<a class='repostBtn' href='/post/" + postValue.id + "/repost/'>Repost</a>" + "</div></div><hr/>"
+		}
 		if (prepend==true){
 			$("#post-container").prepend(postFormattedHtml)
 		} else {
@@ -45,10 +84,15 @@ $(document).ready(function(){
 		// Posts Exists, parse and display them
 		$.each(postList, function(key, value){
 			var postKey = key;
-			attachPost(value)
-			})
-		}
+			if (value.parent){
+				attachPost(value, false, true)
+			} else {
+				attachPost(value)
+			}
+			
+		})
 	}
+}
 	function fetchPosts(url){
 		console.log("fetching ...")
 		var fetchUrl;
@@ -73,6 +117,7 @@ $(document).ready(function(){
 			}
 			
 			parsePosts()
+			updateHashLinks()
 
 		},
 		error: function(data){
@@ -132,7 +177,8 @@ $(document).ready(function(){
 				method: "POST",
 				success: function(data){
 					this_.find("input[type=text], textarea").val("")
-					attachPost(value, true)
+					attachPost(data, true)
+					updateHashLinks()
 				},
 				error: function(data){
 					console.log('error')

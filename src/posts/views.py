@@ -1,7 +1,9 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy, reverse
+from django.views import View 
 from django.views.generic import (
 			DeleteView,
 			DetailView, 
@@ -14,6 +16,14 @@ from .forms import  PostModelForm
 from .mixins import FormUserNeededMixin, UserOwnerMixin
 from .models import Post
 
+
+class RepostView(View):
+	def get(self, request, pk, *args, **kwargs):
+		post = get_object_or_404(Post, pk=pk)
+		if request.user.is_authenticated():
+			new_post = Post.objects.repost(request.user, post)
+			return HttpResponseRedirect("/")
+		return HttpResponseRedirect(post.get_absolute_url())
 
 # Create
 class PostCreateView(FormUserNeededMixin, CreateView):

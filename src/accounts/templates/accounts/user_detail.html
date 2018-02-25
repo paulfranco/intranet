@@ -4,7 +4,11 @@
 <div class='row'>
 	<div class='col-sm-3 col-xs-12' style='background-color:white;'>
 		<h1>{{ object.username }}</h1>
-		<p>Followers: {{ object.followed_by.count }}</p>
+		<hr/>
+		<p>Followers: {{ object.followed_by.all.count }}</p>
+		<p>
+			<a class="btn btn-link" href='{{ object.profile.get_follow_url }}'>{% if following %}Unfollow {% else %}Follow{% endif %}</a>
+		</p>
 	</div>
 	<div class='col-sm-9 col-xs-12'>
 		<h1>Posts</h1>
@@ -13,8 +17,8 @@
 
 		{% endfor %}
 		<hr>
-		<h1>Following</h1>
-			{% for user in object.profile.following.all %}
+		<h1>Following: <small>{{ object.profile.get_following.count }}</small></h1>
+			{% for user in object.profile.get_following %}
 				<a href='/profiles/{{ user.username }}'>{{ user.username }}</a><br/>
 				{% empty %}
 					<h4>Not Following any users</h4>
