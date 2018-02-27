@@ -25,7 +25,7 @@ $(document).ready(function(){
 		<div class='col-sm-9'>
 			{% if not request.GET.q %}
 			<div class="">
-				{% include 'posts/form.html' with form=create_form action_url=create_url btn_title='Post' form_id='post-form' %}
+				{% include 'posts/form.html' with form=create_form action_url=create_url btn_title='Post' form_class='post-form' %}
 			</div>
 			<hr/>
 			{% endif %}

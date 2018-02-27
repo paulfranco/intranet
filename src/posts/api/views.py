@@ -40,6 +40,18 @@ class PostCreateAPIView(generics.CreateAPIView):
 	def perform_create(self, serializer):
 		serializer.save(user=self.request.user)
 
+class PostDetailAPIView(generics.ListAPIView):
+	queryset = Post.objects.all()
+	serializer_class = PostModelSerializer
+	pagination_class = StandardResultsPagination
+	permission_classes = [permissions.AllowAny]
+
+	def get_queryset(self, *args, **kwargs):
+		post_id = self.kwargs.get("pk")
+		qs = Post.objects.filter(pk=post_id)
+		return qs
+
+
 class PostListAPIView(generics.ListAPIView):
 	serializer_class = PostModelSerializer
 	pagination_class = StandardResultsPagination

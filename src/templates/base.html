@@ -22,12 +22,13 @@
     </style>
   </head>
   <body>
-  	<div class='container'>
       {% include "navbar.html" %}
+      {% include "reply-modal.html" %}
+    <div class='container'>
     	{% block content %}
-    		
     	{% endblock content %}
 	</div>
+      {% include "reply-modal.html" %}
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
@@ -41,7 +42,7 @@
           if (!results[2]) return '';
           return decodeURIComponent(results[2].replace(/\+/g, " "));
       }
-      function loadPostContainer(postContainerID){
+      function loadPostContainer(postContainerID, fetchOneId){
         var query = getParameterByName('q')
         var postList = [];
         var nextPostUrl;
@@ -75,6 +76,22 @@
               console.log("error")
               console.log(data)
             }
+          })
+        })
+        $(document.body).on("click", ".post-reply", function(e){
+
+          e.preventDefault()
+          var this_ = $(this)
+          var parentId = this_.attr("data-id")
+          var username = this_.attr("data-user")
+          var content = this_.parent().parent().find(".content").text()
+          $("#replyModal").modal({})
+          $("#replyModal textarea").after("<input type='hidden' value'" + parentId + "' name='parent_id' />")
+          $("#replyModal textarea").after("<input type='hidden' value'" + true + "' name='reply' />")
+          $("#replyModal textarea").val("@" + username + " ")
+          $("#replyModal #replyModalLabel").text("Reply to " + content)
+          $("#replyModal").on("shown.bs.modal", function(){
+            $('textarea').focus()
           })
         })
 
@@ -118,19 +135,24 @@
         }
 
         function formatPost(postValue){
-          var verb = "like"
-          if (postValue.did_like){
-            Verb = "unlike"
-          }
+
           var preContent;
           var container;
           var postContent;
-          if (postValue.parent){
+          var is_reply = postValue.reply;
+          if (postValue.parent && !is_reply){
             postValue = postValue.parent
             preContent = "<span class='grey-color'> Repost via " + postValue.user.username + " on " + postValue.date_display + "</span><br/>"
+          } else if (postValue.parent && is_reply) {
+            preContent = "<span class='grey-color'> Reply to @" + postValue.parent.user.username +  "</span><br/>"
           }
 
-          postContent = postValue.content + "<br/> via <a href='" + postValue.user.url+ "'>" + postValue.user.username + "</a> | " + postValue.date_display + " | " + "<a href='/post/" + postValue.id + "'>View</a> | " + "<a class='repostBtn' href='/post/" + postValue.id + "/repost/'>Repost</a>" + " | <a href='#' class='post-like' data-id="+ postValue.id +">" + verb + " (" + postValue.likes + ")</a>"
+          var verb = "like"
+          if (postValue.did_like){
+            verb = "unlike"
+          }
+
+          postContent = "<span class='content'>" + postValue.content + "</span><br/> via <a href='" + postValue.user.url+ "'>" + postValue.user.username + "</a> | " + postValue.date_display + " | " + "<a href='/post/" + postValue.id + "'>View</a> | " + "<a class='repostBtn' href='/post/" + postValue.id + "/repost/'>Repost</a>" + " | <a href='#' class='post-like' data-id='"+ postValue.id +"''>" + verb + " (" + postValue.likes + ")</a>" + " | <a href='#' class='post-reply' data-user='" + postValue.user.username + "'  data-id='"+ postValue.id +"'>Reply </a>"
 
           if (preContent){
             container = "<div class=\"media\"> <div class=\"media-body\">" + preContent + postContent + "</div></div><hr/>"
@@ -197,8 +219,35 @@
           }
         })
         }
+        function fetchSingle(fetchOneId){
+          var fetchDetailUrl = '/api/post/' + fetchOneId + "/"
+          $.ajax({
+          url: fetchDetailUrl,
+          method: "GET",
+          success: function(data){
+            console.log(data)
+            postList = data.results
+            // if (data.next){
+            //   nextPostUrl = data.next
+            // } else {
+            //   $("#loadmore").css("display", "none")
+            // }
+            
+            parsePosts()
+            updateHashLinks()
 
-        fetchPosts()
+          },
+          error: function(data){
+            console.log('error')
+            console.log(data)
+          }
+        })
+        }
+        if (fetchOneId){
+          fetchSingle(fetchOneId)
+        } else {
+          fetchPosts()
+        }
 
         $("#loadmore").click(function(event){
           event.preventDefault()
@@ -211,12 +260,12 @@
         var charsStart = 240;
         var charsCurrent = 0; 
 
-        $("#post-form").append("<span id='postCharsLeft'>" + charsStart + "</span>")
+        $(".post-form").append("<span class='postCharsLeft' style='margin-left: 20px;'>" + charsStart + " left </span>")
 
-        $("#post-form textarea").keyup(function(event){
+        $(".post-form textarea").keyup(function(event){
           var postValue = $(this).val()
           charsCurrent = charsStart - postValue.length
-          var spanChars = $("#postCharsLeft")
+          var spanChars = $(this).parent().parent().parent().find("span.postCharsLeft")
           spanChars.text(charsCurrent)
 
           $("#postCharsLeft").text(charsCurrent)
@@ -237,7 +286,7 @@
         })
 
 
-        $("#post-form").submit(function(event){
+        $(".post-form").submit(function(event){
           event.preventDefault()
           var this_ = $(this)
           var formData = this_.serialize()
@@ -250,6 +299,7 @@
                 this_.find("input[type=text], textarea").val("")
                 attachPost(data, true)
                 updateHashLinks()
+                $("#replyModal").modal("hide")
               },
               error: function(data){
                 console.log('error')

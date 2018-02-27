@@ -1,10 +1,22 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% block script %}
+<script>
+	$(document).ready(function(){
+		loadPostContainer("post-container", {{object.id }})
+	});
+</script>
+{% endblock script %}
 
-	{{ object.content }}<br/>
-	{{ object.user }}<br/>
-	{{ object.timestamp }}<br/>
-	{{ object.timestamp | timesince}}
+{% block content %}
+<div class='row'>
+	<div class='col-sm-3 col-xs-12' style='background-color:yellow;'>
+		<h1>{{ object.user }}</h1>
+	</div>
+	<div class='col-sm-9 col-xs-12'>
+		<div id='post-container'>
+		</div>
+	</div>
+</div>
 	
 {% endblock content%}
