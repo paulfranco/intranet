@@ -1,9 +1,11 @@
+import re
 from django.conf import settings
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.signals import post_save
 from django.utils import timezone
-
+from hashtags.signals import parsed_hashtags
 from .validators import validate_content
 
 # def validate_content(value):
@@ -37,10 +39,20 @@ class PostManager(models.Manager):
 
 		return obj
 
+	def like_toggle(self, user, post_obj):
+		if user in post_obj.liked.all():
+			is_liked = False
+			post_obj.liked.remove(user)
+		else:
+			is_liked = True
+			post_obj.liked.add(user)
+		return is_liked
+
 class Post(models.Model):
 	parent		= models.ForeignKey("self", blank=True, null=True)
 	user		= models.ForeignKey(settings.AUTH_USER_MODEL)
 	content 	= models.CharField(max_length=240, validators = [validate_content])
+	liked		= models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='liked')
 	updated		= models.DateTimeField(auto_now=True)
 	timestamp	= models.DateTimeField(auto_now_add=True)
 
@@ -61,4 +73,27 @@ class Post(models.Model):
 	# 	if content == "abc"
 	# 		raise ValidationError("Content cannot be ABC")
 	# 	return super(Post, self).clean(*args, **kwargs)
+
+def post_save_receiver(sender, instance, created, *args, **kwargs):
+	if created and not instance.parent:
+		# notify user
+		user_regex = r'@(?P<username>[\w.@+-]+)'
+		usernames = re.findall(user_regex, instance.content)
+		m = re.findall(user_regex, instance.content)
+		# send notification to user here
+
+
+		hash_regex = r'#(?P<hashtag>[\w\d-]+)'
+		hashtags = re.findall(hash_regex, instance.content)
+		h_m = re.findall(hash_regex, instance.content)
+		parsed_hashtags.send(sender=instance.__class__, hashtag_list =hashtags)
+		# send hashtag signal to user here
+
+
+
+
+
+
+
+post_save.connect(post_save_receiver, sender=Post)
 

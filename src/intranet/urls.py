@@ -9,12 +9,14 @@ from posts.views import PostListView
 from .views import home
 
 urlpatterns = [
+	url(r'^admin/', admin.site.urls),
     url(r'^$', PostListView.as_view(), name='home'),
-    url(r'^admin/', admin.site.urls),
-    url(r'^profiles/', include('accounts.urls', namespace='profiles')),
     url(r'^tags/(?P<hashtag>.*)/$', HashTagView.as_view(), name='hashtag'),
     url(r'^post/', include('posts.urls', namespace='post')),
-    url(r'^api/post/', include('posts.api.urls', namespace='post-api'))
+    url(r'^api/post/', include('posts.api.urls', namespace='post-api')),
+    url(r'^api/', include('accounts.api.urls', namespace='profiles-api')),
+    url(r'^', include('accounts.urls', namespace='profiles')),
+     
 ]
 
 

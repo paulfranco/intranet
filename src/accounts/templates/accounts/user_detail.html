@@ -1,5 +1,14 @@
 {% extends "base.html" %}
 
+{% block script %}
+	<script>
+		$(document).ready(function(){
+			loadPostContainer("post-container")
+		});
+	</script>
+{% endblock script %}
+
+
 {% block content %}
 <div class='row'>
 	<div class='col-sm-3 col-xs-12' style='background-color:white;'>
@@ -9,27 +18,29 @@
 		<p>
 			<a class="btn btn-link" href='{{ object.profile.get_follow_url }}'>{% if following %}Unfollow {% else %}Follow{% endif %}</a>
 		</p>
-	</div>
-	<div class='col-sm-9 col-xs-12'>
-		<h1>Posts</h1>
-		{% for post in object.post_set.all %}
-		{{ post }}<br/><hr/>
-
-		{% endfor %}
 		<hr>
 		<h1>Following: <small>{{ object.profile.get_following.count }}</small></h1>
 			{% for user in object.profile.get_following %}
 				<a href='/profiles/{{ user.username }}'>{{ user.username }}</a><br/>
-				{% empty %}
-					<h4>Not Following any users</h4>
+			{% empty %}
+				<h4>Not Following any users</h4>
 			{% endfor %}
-		<hr>
-		<h1>Followed By</h1>
-			{% for profile in object.followed_by.all %}
-				<a href='/profiles/{{ profile.user.username }}'>{{ profile.user.username }}</a><br/>
-				{% empty %}
-					<h4>Not Followed by any users</h4>
-			{% endfor %}
+<hr>
+<h1>Followed By</h1>
+	{% for profile in object.followed_by.all %}
+		<a href='/profiles/{{ profile.user.username }}'>{{ profile.user.username }}</a><br/>
+		{% empty %}
+			<h4>Not Followed by any users</h4>
+	{% endfor %}
+	</div>
+	<div class='col-sm-9 col-xs-12'>
+		<h1>Posts</h1>
+		<div id='post-container' data-url='/api/{{ object.username }}/post/'>
+
+		</div>
+		<a href="#" id="loadmore">Load More Posts</a>
+
+
 	</div>
 
 </div>
