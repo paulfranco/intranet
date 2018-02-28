@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+
 {% block script %}
 	<script>
 		$(document).ready(function(){
@@ -25,13 +26,16 @@
 			{% empty %}
 				<h4>Not Following any users</h4>
 			{% endfor %}
-<hr>
-<h1>Followed By</h1>
-	{% for profile in object.followed_by.all %}
-		<a href='/profiles/{{ profile.user.username }}'>{{ profile.user.username }}</a><br/>
-		{% empty %}
-			<h4>Not Followed by any users</h4>
-	{% endfor %}
+		<hr>
+		<h1>Followed By</h1>
+			{% for profile in object.followed_by.all %}
+				<a href='/profiles/{{ profile.user.username }}'>{{ profile.user.username }}</a><br/>
+				{% empty %}
+					<h4>Not Followed by any users</h4>
+			{% endfor %}
+		<hr>
+		
+
 	</div>
 	<div class='col-sm-9 col-xs-12'>
 		<h1>Posts</h1>
@@ -39,6 +43,7 @@
 
 		</div>
 		<a href="#" id="loadmore">Load More Posts</a>
+		
 
 
 	</div>

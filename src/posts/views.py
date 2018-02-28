@@ -54,7 +54,7 @@ class PostDetailView(DetailView):
 	queryset = Post.objects.all()
 	
 
-class PostListView(ListView):
+class PostListView(LoginRequiredMixin, ListView):
 	
 	def get_queryset(self, *args, **kwargs):
 		qs = Post.objects.all()

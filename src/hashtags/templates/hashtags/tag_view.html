@@ -1,16 +1,37 @@
 {% extends "base.html" %}
+<style>
 
+#post-container {
+	background-color: red;
+}
+</style>
+
+{% block script %}
+<script>
+
+$(document).ready(function(){
+	loadPostContainer('post-container')
+});	
+
+</script>
+{% endblock script %}
 
 {% block content %}
 
 	<div class="row">
-		<div class="col-sm-3 col-xs-12">
-			<h1>{{ obj.tag }}</h1> 
-		</div>
-		<div class='col-sm-9'>
-			{% for post in obj.get_posts %}
-				{{ post.content }}<br/>
-			{%  endfor %}
+		<div class='col-sm-12'>
+			{% if request.GET.q %}
+			<p class="lead">Results for {{ request.GET.q }}</p>
+			<hr/>
+			{% endif %}
+		<div class='col-sm-8 col-sm-offset-2'>
+			<h1>Posts</h1>
+			<hr/>
+
+			<div id='post-container' data-url='/api/tags/{{ obj.tag }}/'>
+
+			</div>
+			<a href="#" id="loadmore">Load More Posts</a>
 
 		</div>
 		

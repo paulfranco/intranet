@@ -25,13 +25,14 @@ class PostManager(models.Manager):
 					timestamp__year=timezone.now().year,
 					timestamp__month=timezone.now().month,
 					timestamp__day=timezone.now().day,
+					reply=False,
 
 				)
 		if qs.exists():
 			return None
 
 		obj = self.model(
-				parent = parent_obj,
+				parent = og_parent,
 				user = user,
 				content = parent_obj.content, 
 			)
@@ -68,6 +69,18 @@ class Post(models.Model):
 	class Meta:
 		ordering = ['-timestamp']
 
+	def get_parent(self):
+		the_parent = self
+		if self.parent:
+			the_parent = self.parent
+		return the_parent
+
+	def get_children(self):
+		parent = self.get_parent()
+		qs = Post.objects.filter(parent=parent)
+		qs_parent = Post.objects.filter(pk=parent.pk)
+		return ( qs | qs_parent )
+
 
 	# def clean(self, *args, **kwargs):
 	# 	content = self.content
@@ -80,13 +93,13 @@ def post_save_receiver(sender, instance, created, *args, **kwargs):
 		# notify user
 		user_regex = r'@(?P<username>[\w.@+-]+)'
 		usernames = re.findall(user_regex, instance.content)
-		m = re.findall(user_regex, instance.content)
+		# m = re.findall(user_regex, instance.content)
 		# send notification to user here
 
 
 		hash_regex = r'#(?P<hashtag>[\w\d-]+)'
 		hashtags = re.findall(hash_regex, instance.content)
-		h_m = re.findall(hash_regex, instance.content)
+		# h_m = re.findall(hash_regex, instance.content)
 		parsed_hashtags.send(sender=instance.__class__, hashtag_list =hashtags)
 		# send hashtag signal to user here
 
